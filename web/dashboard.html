@@ -1,0 +1,64 @@
+{{template "header"}}
+<style>
+    .title {
+        font-weight: bold;
+        font-size: 30px;
+        text-align: center;
+    }
+
+    .js {
+        text-align: center;
+    }
+
+    .x{
+        font-weight: bold;
+        color: #3a6def;
+    }
+</style>
+<div class="row">
+    <div class="col-sm-12">
+        <h4 class="page-title">仪表盘</h4>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-rocket pull-xs-right text-muted"></i>
+            <h6 class="text-success text-uppercase m-b-15 m-t-10">任务总数</h6>
+            <h2 class="m-b-10"><span data-plugin="counterup">{{.totalSum}}</span></h2>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-chart pull-xs-right text-muted"></i>
+            <h6 class="text-primary text-uppercase m-b-15 m-t-10">运行任务</h6>
+            <h2 class="m-b-10"><span data-plugin="counterup">{{.startSum}}</span></h2>
+        </div>
+    </div>
+
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-layers pull-xs-right text-muted"></i>
+            <h6 class="text-pink text-uppercase m-b-15 m-t-10">停止任务</h6>
+            <h2 class="m-b-10" data-plugin="counterup">{{.stopSum}}</h2>
+        </div>
+    </div>
+
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-paypal pull-xs-right text-muted"></i>
+            <h6 class="text-info text-uppercase m-b-15 m-t-10">未执行</h6>
+            <h2 class="m-b-10"><span data-plugin="counterup">{{.noExecuSum}}</span></h2>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div class="card-box">
+            <p class="title">Coot 介绍</p>
+            <hr>
+            <p class="js">「 玩转 IFTTT 体验极客生活，互联网自动化神器 」</p>
+            <p class="js">GitHub：<a href="https://github.com/yehuio/Coot" target="_blank">https://github.com/yehuio/Coot</a></p>
+            <p class="js">插件：<a href="https://github.com/yehuio/Coot-Plugs" target="_blank">https://github.com/yehuio/Coot-Plugs</a></p>
+            <p class="js x">感觉好用，请来个Star !</p>
+        </div>
+    </div>
+</div>
+{{template "footer" }}

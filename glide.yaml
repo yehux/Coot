@@ -1,0 +1,10 @@
+package: Coot
+import:
+- package: github.com/domgoer/gotask
+  version: ~1.2.0
+- package: github.com/gin-gonic/gin
+  version: ~1.4.0
+- package: github.com/mattn/go-sqlite3
+  version: ~1.10.0
+- package: gopkg.in/queue.v2
+  version: ~2.0.0
