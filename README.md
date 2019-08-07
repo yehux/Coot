@@ -11,9 +11,9 @@
 # 地址
 
 - 官网：https://coot.io
-- Github：https://github.com/yehuio/Coot
-- 下载地址：https://github.com/yehuio/Coot/releases
-- 插件库地址：https://github.com/yehuio/Coot-Plugs
+- Github：https://github.com/yehux/Coot
+- 下载地址：https://github.com/yehux/Coot/releases
+- 插件库地址：https://github.com/yehux/Coot-Plugs
 
 # 部署说明
 
