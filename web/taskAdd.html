@@ -1,0 +1,453 @@
+{{template "header"}}
+<link rel="stylesheet" href="/static/libs/codes/lib/codemirror.css">
+<link rel="stylesheet" href="/static/libs/codes/theme/monokai.css">
+<link href="/static/libs/clockpicker/bootstrap-clockpicker.min.css" rel="stylesheet">
+<style>
+    .card-box {
+        padding: 0px;
+    }
+
+    .pdbox {
+        padding-top: 30px;
+        padding-left: 30px;
+        padding-right: 25px;
+        padding-bottom: 30px;
+    }
+
+    thead {
+        background: #f2f2f3;
+    }
+
+    .clear {
+        clear: both;
+    }
+
+    .margin-r20 {
+        margin-right: 20px;
+    }
+
+    .title {
+        border-left: 2px solid #0097ff;
+        padding-left: 10px;
+    }
+
+    .CodeMirror {
+        position: relative;
+        overflow: hidden;
+        background: white;
+        height: 100%;
+        border-radius: 5px;
+    }
+
+    .img {
+        position: absolute;
+        right: 167px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 20px;
+        top: 50px;
+        font-family: serif;
+    }
+
+    .xyimg {
+        width: 300px;
+    }
+
+    .addzq {
+        width: 60px;
+        padding: 0;
+
+    }
+
+    .selectzq {
+        height: 32px;
+        border: 0;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+    }
+</style>
+<div class="row">
+    <!-- Page-Title -->
+    <div class="col-sm-12">
+        <div class="btn-group pull-right m-t-15">
+            <a type="button" class="btn btn-custom" href="https://github.com/yehuio/Coot/blob/master/README.md"
+               target="_blank">查看帮助 <span class="m-l-5"><i
+                    class="zmdi zmdi-help-outline"></i></span>
+            </a>
+        </div>
+        <h4 class="page-title">创建任务</h4>
+    </div>
+
+    <div class="col-sm-12">
+        <div class="card-box pdbox">
+            <div class="img">
+                <img src="/static/images/xy.png" class="xyimg">
+                <p>人不努力，和咸鱼有什么区别？</p>
+            </div>
+            <div class="col-md-6">
+                <h4 class="header-title m-t-0 m-b-30 title">基本信息</h4>
+                <div class="form-group row">
+                    <label for="taskName" class="col-sm-3 form-control-label"><span class="text-danger">*</span>
+                        任务名：</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" id="taskName" placeholder="请输入任务名称">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="taskExplain" class="col-sm-3 form-control-label"><span class="text-danger">*</span>
+                        任务说明：</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" id="taskExplain" placeholder="请输入任务说明">
+                    </div>
+                </div>
+                <hr>
+                <h4 class="header-title m-t-0 m-b-30 title">时间设定</h4>
+                <div class="form-group row">
+                    <label class="col-sm-3"><span class="text-danger">*</span> 周期选择：</label>
+                    <div class="col-sm-9">
+                        <label class="c-input c-radio margin-r20">
+                            <input name="taskTimeType" type="radio" value="1" checked="" onclick="switchTimeType(1)">
+                            <span class="c-indicator"></span>
+                            间隔执行
+                        </label>
+                        <label class="c-input c-radio margin-r20">
+                            <input name="taskTimeType" type="radio" value="4" onclick="switchTimeType(2)">
+                            <span class="c-indicator"></span>
+                            每天执行
+                        </label>
+                        <label class="c-input c-radio">
+                            <input name="taskTimeType" type="radio" value="5" onclick="switchTimeType(3)">
+                            <span class="c-indicator"></span>
+                            每月执行
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div id="zqjg">
+                        <label for="taskExplain" class="col-sm-3 form-control-label"><span class="text-danger">*</span>
+                            执行时间：</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="zmdi zmdi-time"></i></div>
+                                <input type="number" id="timeM" min="1" max="59" class="form-control"
+                                       placeholder="请输入执行间隔周期">
+                                <div class="input-group-addon addzq">
+                                    <select class="form-control selectzq" id="selectzq">
+                                        <option value="1">秒</option>
+                                        <option value="2">分钟</option>
+                                        <option value="3">小时</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="zqd" style="display: none;">
+                        <label for="taskExplain" class="col-sm-3 form-control-label"><span class="text-danger">*</span>
+                            执行时间：</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <span class="input-group-addon"> <span class="zmdi zmdi-alarm"></span> </span>
+                                <input class="form-control" id="timeD" value="" placeholder="请选择每天执行时间">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="zqm" style="display: none;">
+                        <label for="taskExplain" class="col-sm-3 form-control-label"><span class="text-danger">*</span>
+                            执行时间：</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <span class="input-group-addon"> <span class="zmdi zmdi-alarm"></span> </span>
+                                <input type="text" id="timeY" placeholder="请输入每月执行时间" data-mask="99号 99时:99分"
+                                       class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <hr>
+                <h4 class="header-title m-t-0 m-b-30 title">通知设置</h4>
+                <div class="form-group row">
+                    <label class="col-sm-3"><span class="text-danger">*</span> E-mail：</label>
+                    <div class="col-sm-9">
+                        <input type="checkbox" id="is_switch_mail" data-plugin="switchery"
+                               data-color="#039cfd"
+                               data-size="small"
+                               class="js-check-change-mail">
+                        <div style="margin-top: 10px;display: none;" id="mailinput">
+                            <input type="text" id="mail_list" value="" data-role="tagsinput" placeholder="邮箱可添加多个"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-3"><span class="text-danger">*</span> Alertover：</label>
+                    <div class="col-sm-9">
+                        <input type="checkbox" id="is_switch_alertover" data-plugin="switchery"
+                               data-color="#039cfd"
+                               data-size="small"
+                               class="js-check-change-alertover">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-3"><span class="text-danger">*</span> Pushbullet：</label>
+                    <div class="col-sm-9">
+                        <input type="checkbox" id="is_switch_pushbullet" data-plugin="switchery"
+                               data-color="#039cfd"
+                               data-size="small"
+                               class="js-check-change-pushbullet">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3"><span class="text-danger">*</span> PushFangTang：</label>
+                    <div class="col-sm-9">
+                        <input type="checkbox" id="is_switch_pushFangTang" data-plugin="switchery"
+                               data-color="#039cfd"
+                               data-size="small"
+                               class="js-check-change-pushFangTang">
+                    </div>
+                </div>
+                <hr>
+                <h4 class="header-title m-t-0 m-b-30 title">代码脚本</h4>
+                <div class="form-group row">
+                    <label class="col-sm-3"><span class="text-danger">*</span> 脚本语言：</label>
+                    <div class="col-sm-9">
+                        <label class="c-input c-radio margin-r20">
+                            <input name="taskLanuage" id="python" type="radio" value="Python" checked=""
+                                   onclick="setLanuage('python')">
+                            <span class="c-indicator"></span>
+                            Python
+                        </label>
+                        <label class="c-input c-radio">
+                            <input name="taskLanuage" id="shell" type="radio" value="Shell"
+                                   onclick="setLanuage('shell')">
+                            <span class="c-indicator"></span>
+                            Shell
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <textarea id="code" name="code"></textarea>
+            </div>
+            <button type="button" class="btn btn-primary waves-effect waves-light"
+                    style="width: 100%;margin-top: 20px;" onclick="submit()">添加任务
+            </button>
+            <div class="clear"></div>
+        </div>
+    </div>
+</div>
+{{template "footer" }}
+<script src="/static/libs/codes/lib/codemirror.js"></script>
+<script src="/static/libs/codes/mode/shell/shell.js"></script>
+<script src="/static/libs/codes/mode/python/python.js"></script>
+<script src="/static/libs/codes/keymap/sublime.js"></script>
+<script src="/static/libs/clockpicker/bootstrap-clockpicker.js"></script>
+<script src="/static/libs/bootstrap-inputmask/bootstrap-inputmask.min.js"></script>
+<script>
+
+    var is_plug_script = 0;
+    var is_alert = [];
+
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        mode: "python",
+        lineWrapping: true,
+        theme: "monokai",
+        tabSize: 4,
+        keyMap: "sublime"
+    });
+
+    function getRequest() {
+        var url = location.search;
+        var theRequest = new Object();
+        if (url.indexOf("?") != -1) {
+            var str = url.substr(1);
+            strs = str.split("&");
+            for (var i = 0; i < strs.length; i++) {
+                theRequest[strs[i].split("=")[0]] = (strs[i].split("=")[1]);
+            }
+            return theRequest;
+        }
+    }
+
+    var arr = getRequest();
+
+    if (typeof(arr) != 'undefined') {
+        if (typeof(arr.name) != 'undefined') {
+            is_plug_script = 1;
+            $("#taskName").val(decodeURIComponent(arr.name));
+        }
+
+        if (typeof(arr.explain) != 'undefined') {
+            $("#taskExplain").val(decodeURIComponent(arr.explain));
+        }
+
+        if (typeof(arr.language) != 'undefined') {
+            if (arr.language == "Python") {
+                $("#python").attr("checked", "true");
+            } else if (arr.language == "Shell") {
+                $("#shell").attr("checked", "true");
+            }
+
+            setLanuage(arr.language.toLowerCase());
+        }
+
+        if (typeof(arr.url) != 'undefined') {
+            $.ajax({
+                type: "GET",
+                url: arr.url,
+                success: function (e) {
+                    editor.setValue(e);
+                },
+                error: function (e) {
+                    swal("加载失败", "可能是网络问题或者脚本丢失", 'error');
+                }
+            });
+        }
+    }
+
+
+    function setLanuage(lanuage) {
+        editor.setOption("mode", lanuage);
+    }
+
+    $('#timeD').clockpicker({
+        placement: 'bottom',
+        align: 'left',
+        'default': 'now'
+    });
+
+    Array.prototype.indexOf = function (val) {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i] == val) return i;
+        }
+        return -1;
+    };
+
+    Array.prototype.remove = function (val) {
+        var index = this.indexOf(val);
+        if (index > -1) {
+            this.splice(index, 1);
+        }
+    };
+
+    var changeCheckboxMail = document.querySelector('.js-check-change-mail');
+
+    changeCheckboxMail.onchange = function () {
+        if (changeCheckboxMail.checked) {
+            is_alert.push("mail");
+            $("#mailinput").show();
+        } else {
+            is_alert.remove('mail');
+            $("#mailinput").hide();
+        }
+    };
+
+    var changeCheckboxAlertover = document.querySelector('.js-check-change-alertover');
+
+    changeCheckboxAlertover.onchange = function () {
+        if (changeCheckboxAlertover.checked) {
+            is_alert.push("alertOver");
+        } else {
+            is_alert.remove('alertOver');
+        }
+    };
+
+    var changeCheckboxPushbullet = document.querySelector('.js-check-change-pushbullet');
+
+    changeCheckboxPushbullet.onchange = function () {
+        if (changeCheckboxPushbullet.checked) {
+            is_alert.push("pushBullet");
+        } else {
+            is_alert.remove('pushBullet');
+        }
+    };
+
+    var changeCheckboxFangTang = document.querySelector('.js-check-change-pushFangTang');
+
+    changeCheckboxFangTang.onchange = function () {
+        if (changeCheckboxFangTang.checked) {
+            is_alert.push("fangtang");
+        } else {
+            is_alert.remove('fangtang');
+        }
+    };
+
+    function switchTimeType(switchType) {
+        if (switchType == 1) {
+            $("#zqjg").show();
+            $("#zqd").hide();
+            $("#zqm").hide();
+        } else if (switchType == 2) {
+            $("#zqjg").hide();
+            $("#zqd").show();
+            $("#zqm").hide();
+        } else if (switchType == 3) {
+            $("#zqjg").hide();
+            $("#zqd").hide();
+            $("#zqm").show();
+        }
+    }
+
+    function submit() {
+        var taskName = $("#taskName").val();
+        var taskExplain = $("#taskExplain").val();
+
+        var taskTimeType = $('input:radio[name="taskTimeType"]:checked').val();
+        var timeM = $("#timeM").val();
+        var selectzq = $("#selectzq").val();
+        var timeD = $("#timeD").val();
+        var timeY = $("#timeY").val();
+
+        var taskLanuage = $('input:radio[name="taskLanuage"]:checked').val();
+        var code = editor.getValue();
+
+        var mail_list = $('#mail_list').val();
+
+        var taskTime = "";
+
+        if (taskTimeType == "1") {
+            taskTime = timeM;
+            taskTimeType = selectzq;
+        } else if (taskTimeType == "4") {
+            taskTime = timeD + ":00"
+        } else if (taskTimeType == "5") {
+            timeY = timeY.replace("号", "").replace("时", "").replace("分", "");
+            taskTime = timeY + ":00"
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/post/task/add",
+            dataType: "json",
+            data: {
+                "is_plug_script": is_plug_script,
+                "taskName": taskName,
+                "taskExplain": taskExplain,
+                "taskTimeType": taskTimeType,
+                "taskTime": taskTime,
+                "taskLanuage": taskLanuage,
+                "is_alert": is_alert.join(),
+                "mail_list": mail_list,
+                "code": code
+            },
+            success: function (e) {
+                if (e.code == 200) {
+                    swal("success", "创建成功!", "success");
+                    setTimeout(function () {
+                        window.location.href = "/task";
+                    }, 2000);
+                } else {
+                    swal("添加失败", e.msg, 'error');
+                }
+            },
+            error: function (e) {
+                swal("添加失败", "请 Github 提交 Issues", 'error');
+            }
+        });
+    }
+</script>
