@@ -2,6 +2,7 @@ package setting
 
 import (
 	"Coot/core/dbUtil"
+	"Coot/core/job"
 	"Coot/error"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,16 +11,18 @@ import (
 )
 
 func Html(c *gin.Context) {
-	data := getSetting() //订阅通知等
+	settingData := getSetting(1) //设置配置等
+	alertData:=getSetting(0)   //通知配置等
 	c.HTML(http.StatusOK, "setting.html", gin.H{
-		"dataList": data,
+		"settingData": settingData,
+		"alertData":alertData,
 	})
 }
 
 /*获取配置*/
-func getSetting() []map[string]interface{} {
-	sql := "select id,type,info,setting_name,setting_dis,update_time,status from coot_setting"
-	result := dbUtil.Query(sql)
+func getSetting(settingType int) []map[string]interface{} {
+	sql := "select id,type,info,setting_name,setting_dis,update_time,status from coot_setting where setting_type=?"
+	result := dbUtil.Query(sql,settingType)
 	return result
 }
 
@@ -44,7 +47,10 @@ func checkInfo(id string) bool {
 	if num == 1 && typeStr == "pushBullet" {
 		return true
 	}
-	if num == 1 && typeStr == "fangtang" {
+	if num == 1 && typeStr == "fangTang" {
+		return true
+	}
+	if num == 1 && typeStr == "logsOff" {
 		return true
 	}
 	return false
@@ -159,6 +165,31 @@ func UpdateStatusSetting(c *gin.Context) {
 	c.JSON(http.StatusOK, error.ErrSuccessNull())
 }
 
+/*是否启用日志功能*/
+func UpdateLogStatusSetting(c *gin.Context) {
+	id := c.PostForm("id")
+	status := c.PostForm("status")
+	if !checkInfo(id) && status == "1" {
+		c.JSON(http.StatusOK, gin.H{"code": 10003, "msg": "请配置后在启用", "data": nil})
+		return
+	}
+	sql := `update coot_setting
+		set status = ?,
+			update_time=?
+		where id = ?`
+	dbUtil.Update(sql, status, time.Now().Format("2006-01-02 15:04"), id)
+	job.LogOff=!job.LogOff
+	c.JSON(http.StatusOK, error.ErrSuccessNull())
+}
+/*初始日志开关*/
+func InitLogsOff(){
+	sql := `select id,status from coot_setting where [type] = 'logsOff'`
+	result := dbUtil.Query(sql)
+	status := result[0]["status"].(int64)
+	if status==1{
+		job.LogOff=true
+	}
+}
 /*根据id获取设置详情*/
 func GetSettingInfo(c *gin.Context) {
 	id, _ := c.GetQuery("id")

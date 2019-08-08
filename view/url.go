@@ -4,6 +4,7 @@ import (
 	"Coot/view/dashboard"
 	"Coot/view/login"
 	"Coot/view/plug"
+	"Coot/view/report"
 	"Coot/view/setting"
 	"Coot/view/task"
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,12 @@ func LoadUrl(r *gin.Engine) {
 	// 插件
 	r.GET("/plugs", login.Jump, plug.Html)
 
+	//日志报告
+	r.GET("/report",login.Jump,report.Html)
+	r.GET("/get/report/data",login.Jump,report.GetLogs)
+	r.GET("/get/report/getNewLogs",login.Jump,report.GetNewLogs)
+	r.POST("/post/report/delete",login.Jump,report.DeleteLogsAll)
+
 	// 设置
 	r.GET("/setting", login.Jump, setting.Html)
 	r.GET("/get/setting/info", login.Jump, setting.GetSettingInfo)
@@ -44,4 +51,5 @@ func LoadUrl(r *gin.Engine) {
 	r.POST("/post/setting/pushBullet", login.Jump, setting.UpdatePushBulletInfo)
 	r.POST("/post/setting/pushFangTang", login.Jump, setting.UpdatePushFangTangInfo)
 	r.POST("/post/setting/checkSetting", login.Jump, setting.UpdateStatusSetting)
+	r.POST("/post/setting/checkLogSetting", login.Jump, setting.UpdateLogStatusSetting)
 }

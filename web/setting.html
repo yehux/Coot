@@ -21,16 +21,18 @@
 <div class="row">
     <!-- Page-Title -->
     <div class="row">
-        <div class="col-sm-12">
+        <div class="col-sm-6">
             <h4 class="page-title">系统设置</h4>
         </div>
-
-        <div class="col-sm-12">
+        <div class="col-sm-6">
+            <h4 class="page-title">通知配置</h4>
+        </div>
+        <div class="col-sm-6">
             <div class="card-box table-responsive">
                 <table class="table table-hover">
                     <thead>
                     <tr>
-                        <th width="15%">名称</th>
+                        <th width="16%">名称</th>
                         <th>介绍</th>
                         <th>更新时间</th>
                         <th width="10%;">配置状态</th>
@@ -39,7 +41,58 @@
                     </tr>
                     </thead>
                     <tbody id="tableList">
-                    {{range $i, $e := .dataList}}
+                    {{range $i, $e := .settingData}}
+                    <tr>
+                        <td>{{$e.setting_name}} </td>
+                        <td>{{$e.setting_dis}}</td>
+                        <td>{{$e.update_time}}</td>
+                        <td>{{if ne $e.info ""}}
+                            已配置
+                        {{else}}
+                            未配置
+                        {{end}}
+                        </td>
+                        <td><input type="checkbox" id="checkbox-{{$e.id}}" data-plugin="switchery"
+                                   onchange="updateStatusFunc('{{$e.id}}',this,'{{$e.type}}')" data-color="#039cfd" data-size="small"
+                        {{if eq $e.status 1}}
+                                   checked
+                        {{end}}
+                        />
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-primary  btn-sm"
+                                    onclick="settingSubFunc('{{$e.id}}','{{$e.type}}')" data-toggle="modal"><i
+                                    class="fa fa-edit"></i>
+                            {{if eq $e.type "logsOff"}}
+                                清空
+                            {{else}}
+                                配置
+                            {{end}}
+                            </button>
+                        </td>
+                    </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="col-sm-6">
+            <div class="card-box table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th width="16%">名称</th>
+                        <th>介绍</th>
+                        <th>更新时间</th>
+                        <th width="10%;">配置状态</th>
+                        <th width="10%;">状态</th>
+                        <th width="6%">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableList">
+                    {{range $i, $e := .alertData}}
                     <tr>
                         <td>{{$e.setting_name}} </td>
                         <td>{{$e.setting_dis}}</td>
@@ -205,6 +258,28 @@
         </div>
     </div>
 </div>
+<!--Setting PushBullet Info Modal -->
+<div class="modal fade" id="settinglogsOffModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">执行日志 配置</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="">清空日志</label>
+
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" onclick="addPushFangTangPost()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 <input type="hidden" value="" id="settingId">
 {{template "footer" }}
 <script>
@@ -236,8 +311,11 @@
             case "pushBullet":
                 $('#settingPushBulletModal').modal('show')
                 break
-            case "fangtang":
+            case "fangTang":
                 $('#settingFangTangModal').modal('show')
+                break
+            case "logsOff":
+                deleteLogsFunc()
                 break
             default:
                 break
@@ -251,6 +329,7 @@
         }).success(function (result) {
             if (result.code == 200) {
                 var arr = result.data[0].info.split("&&")
+                console.log(arr)
                 if (arr.length == 4 && result.data[0].type == "mail") {
                     $("#email").val(arr[2])
                     $("#pass").val(arr[3])
@@ -264,7 +343,7 @@
                     $("#alertReceiver").val(arr[1])
                 } else if (arr.length == 2 && result.data[0].type == "pushBullet") {
                     $("#pushBulletToken").val(arr[0])
-                }else if (arr.length == 2 && result.data[0].type == "fangtang") {
+                }else if (arr.length == 1 && result.data[0].type == "fangTang") {
                     $("#pushFangTangToken").val(arr[0])
                 }
             }
@@ -395,7 +474,11 @@
         })
     }
 
-    function updateStatusFunc(id, ele) {
+    function updateStatusFunc(id, ele,type) {
+        if(type=="logsOff"){
+            updateLogsStatusFunc(id, ele)
+            return
+        }
         var params = {
             id,
             status: $(ele).is(":checked") ? 1 : 0
@@ -413,6 +496,36 @@
             console.log(err)
         })
     }
+    function updateLogsStatusFunc(id, ele) {
+        var params = {
+            id,
+            status: $(ele).is(":checked") ? 1 : 0
+        }
+        $.ajax({
+            type: "post",
+            url: "/post/setting/checkLogSetting",
+            data: params,
+        }).success(function (result) {
+            if (result.code == "10003") {
+                swal(result.msg)
+                $(ele).click()
+            }
+        }).fail(function (err) {
+            console.log(err)
+        })
+    }
 
+    function deleteLogsFunc() {
+        $.ajax({
+            type: "post",
+            url: "/post/report/delete",
+        }).success(function (result) {
+            if (result.code == 200) {
+                swal("success", "清空成功!", "success");
+            }
+        }).fail(function (err) {
+            swal("清空失败", "请 Github 提交 Issues", 'error');
+        })
+    }
 
 </script>

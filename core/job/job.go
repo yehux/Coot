@@ -5,9 +5,7 @@ import (
 	"Coot/core/exec"
 	"Coot/error"
 	"Coot/utils/send"
-	"fmt"
 	"github.com/domgoer/gotask"
-	"github.com/gin-gonic/gin"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +32,32 @@ type Task struct {
 	AlertRecMail string
 }
 
+type Logs struct {
+	/*
+	 * Id         	数据库ID
+	 * TskName		任务名称
+	 * TaskId     	任务ID  添加的时候为空
+	 * TimeType   	执行类型 1 秒执行，2 分钟执行，3 小时执行 ，4 每天指定时间执行，5 每月指定天和时间执行，6 年执行
+	 * LogType   	日志类型
+	 * Cmd 			脚本语言
+	 * Status 		日志状态 -1执行失败 0开始执行 1执行成功
+	 */
+	Id 			string
+	TaskName	string
+	Content 	string
+	CreatedAt 	string
+	Cmd 		string
+	TaskId 		string
+	TimeType 	string
+	PreId		int64
+	LogType 	int
+	Status 		int
+
+}
+var (
+	LogOff bool  //日志开关
+)
+
 func updateExecTime(id string) {
 	sql := `
 		UPDATE coot_tasks
@@ -45,7 +69,26 @@ func updateExecTime(id string) {
 	currTimeStr := time.Now().Format("2006-01-02 15:04:05")
 	dbUtil.Update(sql, currTimeStr, id)
 }
-
+/*写入日志*/
+func writerLogs(log Logs)int64{
+	//关闭状态则不记录
+	if !LogOff{
+		return 0
+	}
+	sql:=`INSERT INTO coot_logs (	
+			task_id,
+			task_name,
+			content,
+			cmd,
+			time_type,
+			status,
+			pre_id,
+			created_at
+		)
+		VALUES
+			(?,?,?,?,?,?,?,?);`
+	return	dbUtil.Insert(sql,log.TaskId,log.TaskName,log.Content,log.Cmd,log.TimeType,log.Status,log.PreId,time.Now().Format("2006-01-02 15:04:05"))
+}
 // 执行任务
 func execute(t *Task) {
 	var id = t.Id
@@ -59,13 +102,12 @@ func execute(t *Task) {
 	}
 
 	// 开始执行任务
-	fmt.Fprintln(gin.DefaultWriter, time.Now().Format("2006-01-02 15:04:05")+" 开始执行 id:"+id+" 任务名称:"+t.Name+" 执行命令:"+cmd)
+	PreId:= writerLogs(Logs{ TaskId:t.Id,TaskName:t.Name,Cmd:cmd,TimeType:t.TimeType,Status:0,Content:"开始执行"})
 	result, err := exec.Execute(cmd)
-
 	if err != nil {
-		fmt.Fprintln(gin.DefaultWriter, time.Now().Format("2006-01-02 15:04:05")+" 执行失败 id:"+id+" 任务名称:"+t.Name+" 脚本结果:", err)
+	    go writerLogs(Logs{PreId:PreId, TaskId:t.Id,TaskName:t.Name,Cmd:cmd,TimeType:t.TimeType,Status:-1,Content:"执行失败"})
 	} else {
-		fmt.Fprintln(gin.DefaultWriter, time.Now().Format("2006-01-02 15:04:05")+" 执行成功 id:"+id+" 任务名称:"+t.Name+" 脚本结果:"+result)
+		go writerLogs(Logs{PreId:PreId, TaskId:t.Id,TaskName:t.Name,Cmd:cmd,TimeType:t.TimeType,Status:1,Content:"执行成功:"+result})
 		//执行通知
 		go notice(t, result)
 	}
@@ -76,80 +118,33 @@ func execute(t *Task) {
 // 消息通知
 func notice(t *Task, result string) {
 
-	// AlertType 格式，mail,pushBullet,alertOver
+	// AlertType 格式，mail,pushBullet,alertOver,fangTang
 	arr := strings.Split(t.AlertType, ",")
 
 	if len(arr) > 0 {
 		for _, v := range arr {
-			// 判断是否开启邮箱通知
-			if v == "mail" {
-				sql := `select status,info from coot_setting where type="mail";`
-				isAlertStatus := dbUtil.Query(sql)
-
-				status := strconv.FormatInt(isAlertStatus[0]["status"].(int64), 10)
-
-				// 判断总开关是否开启
-				if status == "1" {
-					r := strings.Split(result, "&&")
-
-					// 判断脚本 code 是否 为 0
-					if r[0] == "0" {
-						recList := strings.Split(t.AlertRecMail, ",")
-						send.SendMail(recList, "Coot["+t.Name+"]提醒你", r[1], isAlertStatus)
-					}
+			sql := `select status,info from coot_setting where type=?;`
+			isAlertStatus := dbUtil.Query(sql,v)
+			status := strconv.FormatInt(isAlertStatus[0]["status"].(int64), 10)
+			r := strings.Split(result, "&&")
+			// 判断总开关是否开启// 判断脚本 code 是否 为 0
+			if  status=="1"&&len(r)>0&&r[0]=="0"{
+				// 判断是否开启邮箱通知
+				if v == "mail" {
+					recList := strings.Split(t.AlertRecMail, ",")
+					send.SendMail(recList, "Coot["+t.Name+"]提醒你", r[1], isAlertStatus)
 				}
-			}
-
-			// 判断是否开启 alertOver 通知
-			if v == "alertOver" {
-				sql := `select status,info from coot_setting where type="alertOver";`
-				isAlertStatus := dbUtil.Query(sql)
-				status := strconv.FormatInt(isAlertStatus[0]["status"].(int64), 10)
-
-				// 判断总开关是否开启
-				if status == "1" {
-					r := strings.Split(result, "&&")
-
-					// 判断脚本 code 是否 为 0
-					if r[0] == "0" {
-						send.SendAlertOver(isAlertStatus, "Coot["+t.Name+"]提醒你", r[1])
-					}
+				// 判断是否开启 alertOver 通知
+				if v == "alertOver" {
+					send.SendAlertOver(isAlertStatus, "Coot["+t.Name+"]提醒你", r[1])
 				}
-			}
-
-			// 判断是否开启 pushBullet 通知
-			if v == "pushBullet" {
-				sql := `select status,info from coot_setting where type="pushBullet";`
-				isAlertStatus := dbUtil.Query(sql)
-
-				status := strconv.FormatInt(isAlertStatus[0]["status"].(int64), 10)
-
-				// 判断总开关是否开启
-				if status == "1" {
-					r := strings.Split(result, "&&")
-
-					// 判断脚本 code 是否 为 0
-					if r[0] == "0" {
-						send.SendPushBullet(isAlertStatus, "Coot["+t.Name+"]提醒你", r[1])
-					}
+				// 判断是否开启 pushBullet 通知
+				if v == "pushBullet" {
+					send.SendPushBullet(isAlertStatus, "Coot["+t.Name+"]提醒你", r[1])
 				}
-			}
-
-			// 判断是否开启 方糖 通知
-			if v == "fangTang" {
-				sql := `select status,info from coot_setting where type="fangtang";`
-				isAlertStatus := dbUtil.Query(sql)
-
-				status := strconv.FormatInt(isAlertStatus[0]["status"].(int64), 10)
-
-				// 判断总开关是否开启
-				if status == "1" {
-					r := strings.Split(result, "&&")
-
-					// 判断脚本 code 是否 为 0
-					if r[0] == "0" {
-						send.SendFangTang(isAlertStatus, "Coot["+t.Name+"]提醒你", r[1])
-					}
+				// 判断是否开启 方糖 通知
+				if v == "fangTang" {
+					send.SendFangTang(isAlertStatus, "Coot["+t.Name+"]提醒你", r[1])
 				}
 			}
 		}

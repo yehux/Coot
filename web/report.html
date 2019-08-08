@@ -1,0 +1,314 @@
+{{template "header"}}
+<style>
+    .title {
+        font-weight: bold;
+        font-size: 22px;
+        text-align: center;
+    }
+
+    .js {
+        text-align: center;
+    }
+
+    .x{
+        font-weight: bold;
+        color: #3a6def;
+    }
+    .span-tag{
+        font-size: 14px;
+    }
+    p{
+        margin-block-start:0;
+        margin-block-end: 0;
+        margin-bottom: 5px;
+    }
+    .index-project {
+        max-height: 180px;
+        overflow: hidden;
+        position: relative;
+        /* background-color: antiquewhite; */
+        background-color: #fdf6ef;
+        border-radius: 15px;
+        /* width: 59.2%; */
+        padding: 2% 5%;
+        margin-bottom: 2%;
+        animation: moveRight 0.7s ease-in-out 0.2s backwards;
+    }
+    .index-project-left {
+        animation: moveUpLeft 0.7s ease-in-out 0.2s backwards;
+    }
+
+    @keyframes moveRight {
+        0% {
+            transform: translateX(50px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes moveUpLeft {
+        0% {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+<div class="row">
+    <div class="col-sm-12">
+        <h4 class="page-title">日志报表</h4>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-rocket pull-xs-right text-muted"></i>
+            <h6 class="text-success text-uppercase m-b-15 m-t-10">任务总数</h6>
+            <h2 class="m-b-10"><span data-plugin="counterup">{{.totalSum}}</span></h2>
+        </div>
+    </div>
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-chart pull-xs-right text-muted"></i>
+            <h6 class="text-primary text-uppercase m-b-15 m-t-10">运行任务</h6>
+            <h2 class="m-b-10"><span data-plugin="counterup">{{.startSum}}</span></h2>
+        </div>
+    </div>
+
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-layers pull-xs-right text-muted"></i>
+            <h6 class="text-pink text-uppercase m-b-15 m-t-10">停止任务</h6>
+            <h2 class="m-b-10" data-plugin="counterup">{{.stopSum}}</h2>
+        </div>
+    </div>
+
+    <div class="col-xs-12 col-md-6 col-lg-6 col-xl-3">
+        <div class="card-box tilebox-two">
+            <i class="icon-paypal pull-xs-right text-muted"></i>
+            <h6 class="text-info text-uppercase m-b-15 m-t-10">未执行</h6>
+            <h2 class="m-b-10"><span data-plugin="counterup">{{.noExecuSum}}</span></h2>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card-box" style="height: 340px;">
+            <p class="title">执行记录</p>
+            <div id="logs">
+            {{range $i, $e := .tenExecuData}}
+            {{if eq $e.status 0}}
+                <p class="index-project" data-id="{{$e.id}}"><span style="color:#efcb5e">{{$e.task_name}}</span>&nbsp;&nbsp;&nbsp;<span>{{$e.created_at}}</span></p>
+            {{else if eq  $e.status 1}}
+                <p class="index-project index-project-left"  data-id="{{$e.id}}"><span style="color:#58b981">{{$e.task_name}}</span>&nbsp;&nbsp;&nbsp;<span>{{$e.created_at}}</span></p>
+            {{else}}
+                <p class="index-project index-project-left"  data-id="{{$e.id}}"><span style="color:#e16656">{{$e.task_name}}</span>&nbsp;&nbsp;&nbsp;<span>{{$e.created_at}}</span></p>
+            {{end}}
+            {{end}}
+            </div>
+        </div>
+    </div>
+        <div class="col-md-10">
+            <div class="card-box">
+                <div id="myChart" style="width:100%;height:300px;"></div>
+            </div>
+        </div>
+</div>
+
+{{template "footer" }}
+<script src="/static/libs/echarts/echarts.js"></script>
+<script>
+    const colorAry = ['#60a5e9', '#e16656', '#58b981', '#efcb5e', '#d79191', '#55b7b1', '#4d6dbe', '#c9a775', '#688bab', '#c1c7c9', '#aaf000'];
+    var myChart = echarts.init(document.getElementById('myChart'));
+    var option = {
+        // title: {
+        //     text: '日志数据'
+        // },
+        color: [colorAry[3],colorAry[2],colorAry[1]],
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            }
+        },
+        legend: {
+            data: ['开始执行次数','成功执行次数', '失败执行次数']
+        },
+        grid: {
+            left: '0%',
+            right: '3%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: [
+            {
+                type: 'category',
+                // boundaryGap: false,
+                data:[]
+            }
+        ],
+        yAxis: [
+            {
+                type: 'value'
+            }
+        ],
+        grid: {left: '5%',
+            top: '15%',
+            right: '5%',
+            bottom: '40'},
+        series: [
+            {
+                name: "开始执行次数",
+                type: 'bar',
+                barWidth: '3%',
+                stack: "wait",
+                data: [],
+                label: {
+                    normal: {
+                        show: false,
+                        position: 'top',
+                        textStyle: {
+                            color: "#000"
+                        },
+                        formatter: (val) => {
+                            return val.data
+                        }
+                    }
+                },
+            },{
+                name: "成功执行次数",
+                type: 'bar',
+                barWidth: '3%',
+                stack: "success",
+                data: [],
+                label: {
+                    normal: {
+                        show: false,
+                        position: 'top',
+                        textStyle: {
+                            color: "#000"
+                        },
+                        formatter: (val) => {
+                            return val.data
+                        }
+                    }
+                },
+            },
+            {
+                name: "失败执行次数",
+                type: 'bar',
+                barWidth: '3%',
+                stack: "fail",
+                data: [],
+                label: {
+                    normal: {
+                        show: false,
+                        position: 'top',
+                        textStyle: {
+                            color: "#000"
+                        },
+                        formatter: (val) => {
+                            return val.data
+                        }
+                    }
+                },
+            },
+        ]
+    };
+    myChart.showLoading();    //数据加载完之前先显示一段简单的loading动画
+    $.ajax({
+        type: "GET",
+        url: "/get/report/data",
+        dataType: "json",
+        success: function (e) {
+            if (e.code == 200) {
+                option.xAxis[0].data= e.waitLogs.map(s=>s.task_name)
+                option.series=[
+                        {
+                            name: "开始执行次数",
+                            data: e.waitLogs.map(s=>s.count),
+                        },{
+                            name: "成功执行次数",
+                            data: e.okLogs.map(s=>s.count),
+                        },
+                        {
+                            name: "失败执行次数",
+                            data: e.failLogs.map(s=>s.count),
+                        },
+                    ]
+                myChart.hideLoading();    //隐藏加载动画
+                myChart.setOption(option);
+            }
+        }
+    })
+    myChart.setOption(option);
+    setInterval(function () {
+
+        $.ajax({
+            type: "GET",
+            url: "/get/report/data",
+            dataType: "json",
+            success: function (e) {
+                if (e.code == 200) {
+
+                    myChart.setOption({        //加载数据图表
+                        xAxis: {
+                            data: e.waitLogs.map(s=>s.task_name)
+                        },
+                        series:[
+                            {
+                                name: "开始执行次数",
+                                data: e.waitLogs.map(s=>s.count),
+
+                            },{
+                                name: "成功执行次数",
+                                data: e.okLogs.map(s=>s.count),
+                            },
+                            {
+                                name: "失败执行次数",
+                                data: e.failLogs.map(s=>s.count),
+                            },
+                        ]
+                    });
+                }
+            }
+        });
+        if($(".index-project").length>0)
+            getNewLogs($(".index-project")[0])
+    },2000)
+
+    var getNewLogs=function (ele) {
+        var id = $(ele).attr("data-id")
+        $.ajax({
+            type: "GET",
+            url: "/get/report/getNewLogs?id="+id,
+            dataType: "json",
+            success: function (e) {
+                if (e.code == 200) {
+                    var append=true
+                    e.data.slice(0,8).map((s,i)=>{
+                        var color="#efcb5e"
+                        if(s.status==1){
+                            color="#58b981"
+                        }
+                        if(s.status==-1){
+                            color="#e16656"
+                        }
+                        if(append){
+                            $("#logs").prepend(`<p class="index-project" data-id="`+s.id+`"><span style="color:`+color+`">`+s.task_name+`</span>&nbsp;&nbsp;&nbsp;<span>`+s.created_at+`</span></p>`)
+                        }else{
+                            $("#logs").prepend(`<p class="index-project index-project-left" data-id="`+s.id+`"><span style="color:`+color+`">`+s.task_name+`</span>&nbsp;&nbsp;&nbsp;<span>`+s.created_at+`</span></p>`)
+                        }
+                        append=!append
+                        var eleArr = $(".index-project")
+                        $(eleArr[eleArr.length-(i+1)]).remove()
+                    })
+                }
+            }
+        })
+    }
+</script>
