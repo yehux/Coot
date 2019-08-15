@@ -11,6 +11,12 @@
     <link href="/static/libs/bootstrap-sweetalert/sweet-alert.css" rel="stylesheet" type="text/css"/>
     <link href="/static/libs/switchery/switchery.min.css" rel="stylesheet"/>
     <link href="/static/libs/bootstrap-tagsinput/css/bootstrap-tagsinput.css" rel="stylesheet"/>
+    <style>
+        .row {
+             margin-left: 0;
+             margin-right:0;
+        }
+    </style>
 </head>
 
 <body>
@@ -33,11 +39,15 @@
                         </a>
                     </li>
                     <li>
+                        <a href="/report"><i class="fa fa-bars icotop3"></i> <span> 日志报表 </span> </a>
+                    </li>
+                    <li>
                         <a href="/task"><i class="zmdi zmdi-alarm icotop3"></i> <span> 任务 </span> </a>
                     </li>
                     <li>
                         <a href="/plugs"><i class="zmdi zmdi-apps icotop3"></i> <span> 插件市场 </span> </a>
                     </li>
+
                     <li>
                         <a href="/setting"><i class="fa fa-cog icotop3"></i> <span> 系统设置 </span> </a>
                     </li>
@@ -89,4 +99,6 @@
 <div class="wrapper">
     <div class="container">
         <!-- Page-Title -->
+        </div>
+</div>
 {{end}}

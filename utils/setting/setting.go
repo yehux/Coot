@@ -4,6 +4,7 @@ import (
 	"Coot/core/exec"
 	"Coot/utils/color"
 	"Coot/view"
+	"Coot/view/setting"
 	"Coot/view/task"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,10 @@ func RunWeb(addr string) {
 
 	// 清除 task_id
 	task.UpdateTaskAll()
-
+	// 清除 日志
+	//report.DeleteLogsAll()
+	//初始日志开关
+	setting.InitLogsOff()
 	r.Run(addr)
 }
 
